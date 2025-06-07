@@ -13,3 +13,9 @@ dependencies = [
 dev = [
     "ruff>=0.11.12",
 ]
+
+[tool.ruff]
+exclude = ["venv", ".venv"]
+# Same as Black.
+line-length = 88
+indent-width = 4
