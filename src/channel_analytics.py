@@ -54,6 +54,7 @@ def list_not_active_channels(
     channel_list = get_channel_data(
         client, target_date=target_date.isoformat(), dry_run=dry_run
     )
+    print(f"Get {len(channel_list)} channels")
     if not channel_list:
         return []
 

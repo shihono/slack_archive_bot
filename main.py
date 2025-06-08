@@ -1,4 +1,5 @@
 import os
+import json
 import click
 from dotenv import load_dotenv
 from slack_sdk import WebClient
@@ -33,12 +34,16 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
         f"threshold_days: {threshold_days}, send_message: {send_message}, save_path: {save_path}, dry-run: {dry_run}"
     )
     load_dotenv(override=True)
-    slack_token = os.getenv("SLACK_BOT_TOKEN")
+    slack_token = os.getenv("SLACK_USER_TOKEN")
     if not slack_token:
-        raise ValueError(f"SLACK_BOT_TOKEN is not set {slack_token}")
+        raise ValueError(f"SLACK_USER_TOKEN is not set {slack_token}")
     client = WebClient(token=slack_token)
     result = list_not_active_channels(client, threshold_days=100, dry_run=dry_run)
     print(f"Get {len(result)} channels")
+    if save_path:
+        with open(save_path, "w") as f:
+            json.dump({"result": result}, f, indent=4)
+        print(f"Save file: {save_path}")
 
 
 @cli.command("archive")
