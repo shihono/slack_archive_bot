@@ -7,7 +7,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 
-def get_channel_data(client, target_date, dry_run=True) -> list[dict]:
+def get_channel_data(client, target_date, dry_run) -> list[dict]:
     """Retrieve public_channel list
 
     API https://api.slack.com/methods/admin.analytics.getFile/
@@ -41,6 +41,7 @@ def list_not_active_channels(
     target_date: date = None,
     skip_shared: bool = True,
     skip_guest: bool = False,
+    dry_run: bool = False,
 ):
     """get not active channels
 
@@ -50,7 +51,10 @@ def list_not_active_channels(
     if target_date is None:
         # get last week date
         target_date = date.today() - timedelta(days=7)
-    channel_list = get_channel_data(client, target_date=target_date.isoformat())
+    channel_list = get_channel_data(
+        client, target_date=target_date.isoformat(), dry_run=dry_run
+    )
+    print(f"Get {len(channel_list)} channels")
     if not channel_list:
         return []
 
