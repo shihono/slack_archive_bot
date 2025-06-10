@@ -38,7 +38,7 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     if not slack_token:
         raise ValueError(f"SLACK_USER_TOKEN is not set {slack_token}")
     client = WebClient(token=slack_token)
-    result = list_not_active_channels(client, threshold_days=100, dry_run=dry_run)
+    result = list_not_active_channels(client, threshold_days=threshold_days, dry_run=dry_run)
     print(f"Get {len(result)} channels")
     if save_path:
         with open(save_path, "w") as f:

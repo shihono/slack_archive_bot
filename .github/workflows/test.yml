@@ -1,0 +1,32 @@
+name: Test
+on:
+   push
+
+jobs:
+   test:
+      name: Test Code
+      runs-on: ubuntu-latest
+      timeout-minutes: 30
+      defaults:
+        run:
+            shell: bash
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Install uv
+          uses: astral-sh/setup-uv@v5
+          with:
+            enable-cache: true
+        
+        - name: "Set up Python"
+          uses: actions/setup-python@v5
+          with:
+            python-version-file: ".python-version"
+        
+        - name: Install project
+          run: uv sync --locked --all-extras --dev
+
+        - name: Run pytest
+          run: uv run pytest
+          
