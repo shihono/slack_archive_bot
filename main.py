@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from slack_sdk import WebClient
 
 from src.channel_analytics import list_not_active_channels
+from src.send_message import join_channels
 
 
 @click.group()
@@ -38,12 +39,22 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     if not slack_token:
         raise ValueError(f"SLACK_USER_TOKEN is not set {slack_token}")
     client = WebClient(token=slack_token)
-    result = list_not_active_channels(client, threshold_days=threshold_days, dry_run=dry_run)
+    result = list_not_active_channels(
+        client, threshold_days=threshold_days, dry_run=dry_run
+    )
     print(f"Get {len(result)} channels")
+    if len(result) == 0:
+        print("No channels were found that should be archived")
+        return
+
     if save_path:
         with open(save_path, "w") as f:
             json.dump({"result": result}, f, indent=4)
         print(f"Save file: {save_path}")
+    channel_list = [data["channel_id"] for data in result]
+    # Join channels to archive
+    join_channels(client, channel_list, send_message, threshold_days)
+    print("Ready to archive channels by executing archive command.")
 
 
 @cli.command("archive")
