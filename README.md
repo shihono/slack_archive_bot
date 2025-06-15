@@ -19,3 +19,9 @@ SLACK_USER_TOKEN="xoxp-XXXX"
 # Bot User OAuth Token
 SLACK_BOT_TOKEN="xoxb-XXXX"
 ```
+
+## Usage
+
+```bash
+uv run python main.py --help
+```
