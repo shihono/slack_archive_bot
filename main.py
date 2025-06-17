@@ -6,6 +6,7 @@ from slack_sdk import WebClient
 
 from src.channel_analytics import list_not_active_channels
 from src.send_message import join_channels
+from src.archive import archive_channels
 
 
 @click.group()
@@ -65,12 +66,21 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     print("Ready to archive channels by executing archive command.")
 
 
+@click.option(
+    "--threshold-days",
+    required=False,
+    default=100,
+    help="Days of condition to archive inactive channels",
+)
+@click.option("--dry-run", is_flag=True)
 @cli.command("archive")
-def archive_channel():
-    slack_token = os.environ["SLACK_BOT_TOKEN"]
-    if not slack_token:
+def archive_channel(threshold_days, dry_run):
+    slack_bot_token = os.environ["SLACK_BOT_TOKEN"]
+    if not slack_bot_token:
         raise ValueError("SLACK_BOT_TOKEN is not set")
-    raise NotImplementedError()
+    bot_client = WebClient(token=slack_bot_token)
+    result = archive_channels(bot_client, threshold_days, dry_run)
+    print(f"End archive channels: {len(result)} channels")
 
 
 if __name__ == "__main__":
