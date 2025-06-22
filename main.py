@@ -43,7 +43,7 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     )
     load_dotenv(override=True)
     slack_user_token = os.getenv("SLACK_USER_TOKEN")
-    slack_bot_token = os.environ["SLACK_BOT_TOKEN"]
+    slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
     if not (slack_user_token and slack_bot_token):
         raise ValueError("SLACK_USER_TOKEN or SLACK_BOT_TOKEN is not set")
     user_client = WebClient(token=slack_user_token)
@@ -75,7 +75,7 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
 @click.option("--dry-run", is_flag=True)
 @cli.command("archive")
 def archive_channel(threshold_days, dry_run):
-    slack_bot_token = os.environ["SLACK_BOT_TOKEN"]
+    slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
     if not slack_bot_token:
         raise ValueError("SLACK_BOT_TOKEN is not set")
     bot_client = WebClient(token=slack_bot_token)

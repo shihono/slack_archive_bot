@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from typing import Optional
 from slack_sdk import WebClient
@@ -6,24 +7,52 @@ from slack_sdk.errors import SlackApiError
 from src.channel_analytics import is_not_active_channels
 
 
+def run_conversations_list(
+    client: WebClient, channel_types="public_channel", cursor=None, is_retry=False
+):
+    """conversations_list wrapper
+    API: https://api.slack.com/methods/conversations.list
+    """
+    try:
+        response = client.conversations_list(
+            types=channel_types, exclude_archived=True, limit=1000, cursor=cursor
+        )
+        return response
+    except SlackApiError as e:
+        error = e.response["error"]
+        if error == "ratelimited" and not is_retry:
+            retry_after = int(e.response.headers.get("Retry-After", 10))
+            print(f"Rate limit exceeded. Retrying after {retry_after} seconds...")
+            time.sleep(retry_after)
+            # retry
+            run_conversations_list(client, channel_types, cursor, is_retry=True)
+        else:
+            print(f"Fail to get channels : {e.response['error']}")
+            raise e
+
+
 def list_bot_joined_channels(
     client: WebClient, channel_types="public_channel"
 ) -> list[dict]:
     """Lists all channels that bot joined"""
+    request_cnt = 0
     channels = []
 
     try:
         cursor = None
         while True:
-            response = client.conversations_list(
-                types=channel_types, exclude_archived=True, limit=100, cursor=cursor
+            response = run_conversations_list(
+                client, channel_types, cursor, is_retry=False
             )
             for channel in response["channels"]:
                 if channel.get("is_member", False):
                     channels.append({"id": channel["id"], "name": channel["name"]})
             cursor = response["response_metadata"].get("next_cursor")
+            print(f"run conversations_list {request_cnt + 1}")
+            request_cnt += 1
             if not cursor:
                 break
+            time.sleep(1)
 
     except SlackApiError as e:
         print(f"Fail to get channels : {e.response['error']}")
@@ -71,12 +100,12 @@ def archive_channels(
             if not dry_run:
                 # todo list members before archive
                 try:
-                    client.conversations_archive(channel_info["id"])
+                    client.conversations_archive(channel=channel_info["id"])
                 except SlackApiError as e:
                     print(f"Fail to archive: {channel_info}")
                     raise e
             archived_channels.append(channel_info)
         elif not dry_run:
             # todo send message
-            client.channels_leave(channel_info["id"])
+            client.channels_leave(channel=channel_info["id"])
     return archived_channels
