@@ -12,6 +12,9 @@ def run_conversations_list(
 ):
     """conversations_list wrapper
     API: https://api.slack.com/methods/conversations.list
+
+    Return:
+        SlackResponse
     """
     try:
         response = client.conversations_list(
@@ -65,7 +68,13 @@ def list_bot_joined_channels(
 
 
 def get_latest_message_ts(client: WebClient, channel_id: str) -> Optional[int]:
-    """get timestamp"""
+    """get timestamp
+
+    # todo filter bot message
+
+    Return:
+        timestamp
+    """
     try:
         response = client.conversations_history(channel=channel_id, limit=1)
         messages = response.get("messages", [])

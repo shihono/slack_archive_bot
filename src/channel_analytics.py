@@ -17,6 +17,9 @@ def get_channel_data(client: WebClient, target_date: str, dry_run: bool) -> list
         client: slack_sdk WebClient
         target_date: date to get channel data in "YYYY-MM-DD" format
         dry_run: if True, do not send API request
+
+    Return:
+        metadata response list
     """
     if dry_run:
         return []
@@ -63,6 +66,9 @@ def list_not_active_channels(
         skip_shared: skip shared channels
         skip_guest: skip channels with guest members
         dry_run: if True, do not send API request
+
+    Return:
+        channel_list
     """
     if target_dt is None:
         # analytics data is not available for today

@@ -36,7 +36,14 @@ def format_notice_message(channel_name: str, days: int) -> list:
 def join_channels(
     client: WebClient, channel_list: list[str], send_message: bool, days: int
 ):
-    """join inactive channel and send message"""
+    """join inactive channel and send message
+
+    Args:
+        client:
+        channel_list: channel id list
+        send_message: if True, send notice message
+        days: threshold_days
+    """
     joined_channels = []
     for channel_id in channel_list:
         try:
@@ -67,3 +74,4 @@ def join_channels(
         channel_id = channel_item["channei_id"]
         message_block = format_notice_message(channel_name, days)
         send_message(client, channel_name, message_block)
+    return joined_channels
