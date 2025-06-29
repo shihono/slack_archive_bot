@@ -6,7 +6,7 @@ from slack_sdk import WebClient
 
 from src.channel_analytics import list_not_active_channels
 from src.send_message import join_channels
-from src.archive import archive_channels
+from src.archive import archive_channels, leave_channels
 
 
 @click.group()
@@ -73,7 +73,7 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     help="Days of condition to archive inactive channels",
 )
 @click.option("--dry-run", is_flag=True)
-@cli.command("archive")
+@cli.command("archive", help="archive channels that bot joined")
 def archive_channel(threshold_days, dry_run):
     slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
     if not slack_bot_token:
@@ -81,6 +81,17 @@ def archive_channel(threshold_days, dry_run):
     bot_client = WebClient(token=slack_bot_token)
     result = archive_channels(bot_client, threshold_days, dry_run)
     print(f"End archive channels: {len(result)} channels")
+
+
+@click.option("--dry-run", is_flag=True)
+@cli.command("reset", help="leave all channels")
+def reset_bot_join_channel(dry_run):
+    slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
+    if not slack_bot_token:
+        raise ValueError("SLACK_BOT_TOKEN is not set")
+    bot_client = WebClient(token=slack_bot_token)
+    result = leave_channels(bot_client, dry_run)
+    print(f"End reset bot: leave {len(result)} channels")
 
 
 if __name__ == "__main__":

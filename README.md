@@ -25,3 +25,18 @@ SLACK_BOT_TOKEN="xoxb-XXXX"
 ```bash
 uv run python main.py --help
 ```
+
+
+## Development
+
+format with ruff
+
+```bash
+uv run ruff format | uv run ruff check
+```
+
+test
+
+```bash
+uv run pytest
+```

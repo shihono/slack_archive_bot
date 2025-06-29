@@ -34,7 +34,11 @@ def run_conversations_list(
 def list_bot_joined_channels(
     client: WebClient, channel_types="public_channel"
 ) -> list[dict]:
-    """Lists all channels that bot joined"""
+    """Lists all channels that bot joined
+
+    Return:
+        list `{ "id": "channei_id", "name": "channel_name" }`
+    """
     request_cnt = 0
     channels = []
 
@@ -88,6 +92,9 @@ def archive_channels(
         client: slack_sdk WebClient
         threshold_days: Days of condition to archive inactive channels
         dry_run: if True, only check if each channel that bot joined is inactive
+
+    Return:
+        channel info list
     """
     archived_channels = []
     if target_dt is None:
@@ -109,3 +116,21 @@ def archive_channels(
             # todo send message
             client.channels_leave(channel=channel_info["id"])
     return archived_channels
+
+
+def leave_channels(client: WebClient, dry_run: bool = True):
+    """leave all channels that bot joined
+
+    Args:
+        client: slack_sdk WebClient
+        dry_run: if True, only list joined channels
+    Return:
+        channel info list
+    """
+    joined_channels = []
+    for channel_info in list_bot_joined_channels(client):
+        joined_channels.append(channel_info)
+        if dry_run:
+            continue
+        client.channels_leave(channel=channel_info["id"])
+    return joined_channels
