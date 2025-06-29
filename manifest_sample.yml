@@ -1,0 +1,20 @@
+display_information:
+  name: slack_archive_bot
+features:
+  bot_user:
+    display_name: slack_archive_bot
+    always_online: false
+oauth_config:
+  scopes:
+    user:
+      - admin.analytics:read
+    bot:
+      - channels:history
+      - channels:join
+      - channels:read
+      - chat:write
+      - channels:manage
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

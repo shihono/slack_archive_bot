@@ -67,3 +67,4 @@ def join_channels(
         channel_id = channel_item["channei_id"]
         message_block = format_notice_message(channel_name, days)
         send_message(client, channel_name, message_block)
+    return joined_channels

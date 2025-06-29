@@ -30,7 +30,7 @@ def cli():
 @click.option(
     "--save-path", required=False, help="Save inactive channel list as json file"
 )
-@click.option("--dry-run", is_flag=True)
+@click.option("--dry-run", is_flag=True, help="only list inactive channels")
 def list_channel(threshold_days, send_message, save_path, dry_run):
     """list channel and prepare to archive channels
 
@@ -48,7 +48,7 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
         raise ValueError("SLACK_USER_TOKEN or SLACK_BOT_TOKEN is not set")
     user_client = WebClient(token=slack_user_token)
     result = list_not_active_channels(
-        user_client, threshold_days=threshold_days, dry_run=dry_run
+        user_client, threshold_days=threshold_days, dry_run=False
     )
     print(f"Get {len(result)} channels")
     if len(result) == 0:
@@ -62,6 +62,8 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     bot_client = WebClient(token=slack_bot_token)
     channel_list = [data["channel_id"] for data in result]
     # Join channels that should be archived
+    if dry_run:
+        return
     join_channels(bot_client, channel_list, send_message, threshold_days)
     print("Ready to archive channels by executing archive command.")
 
@@ -73,8 +75,12 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     help="Days of condition to archive inactive channels",
 )
 @click.option("--dry-run", is_flag=True)
-@cli.command("archive", help="archive channels that bot joined")
+@cli.command("archive")
 def archive_channel(threshold_days, dry_run):
+    """archive channels that bot joined
+
+    * If the channels is active, leave the channel without archive
+    """
     slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
     if not slack_bot_token:
         raise ValueError("SLACK_BOT_TOKEN is not set")
