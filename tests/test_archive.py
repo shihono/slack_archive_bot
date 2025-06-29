@@ -5,6 +5,7 @@ from src.archive import (
     list_bot_joined_channels,
     get_latest_message_ts,
     archive_channels,
+    leave_channels,
 )
 
 
@@ -78,3 +79,14 @@ def test_archive_channels_archive(mock_list_channels, mock_latest_message_ts):
     assert {"id": "C001", "name": "channel01"} in result
     assert {"id": "C002", "name": "channel02"} in result
     assert mock_client.conversations_archive.call_count == 2
+
+
+@mock.patch("src.archive.list_bot_joined_channels")
+def test_leave_leave_channels(mock_list_channels):
+    mock_list_channels.return_value = [{"id": "C001", "name": "channel01"}]
+    mock_client = mock.MagicMock()
+    mock_client.conversations_archive.return_value = mock.Mock(data={"ok": True})
+
+    result = leave_channels(mock_client, False)
+    assert len(result) == 1
+    assert {"id": "C001", "name": "channel01"} in result

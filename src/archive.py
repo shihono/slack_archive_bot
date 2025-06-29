@@ -92,6 +92,9 @@ def archive_channels(
         client: slack_sdk WebClient
         threshold_days: Days of condition to archive inactive channels
         dry_run: if True, only check if each channel that bot joined is inactive
+
+    Return:
+        channel info list
     """
     archived_channels = []
     if target_dt is None:
