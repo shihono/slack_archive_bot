@@ -3,6 +3,8 @@
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+from src.channel_members import SlackChannelMembers
+
 
 def send_text(client: WebClient, channel_id: str, blocks: list):
     """https://api.slack.com/methods/chat.postMessage
@@ -18,7 +20,7 @@ def send_text(client: WebClient, channel_id: str, blocks: list):
 
 
 def format_notice_message(channel_name: str, days: int) -> list:
-    """create massege
+    """create message
     todo set template text
     """
     message = (
@@ -31,6 +33,19 @@ def format_notice_message(channel_name: str, days: int) -> list:
             "text": message,
         },
     ]
+
+
+def send_mention_message(client: WebClient, channel_id: str):
+    """mention channel members before archive"""
+    members_helper = SlackChannelMembers(client)
+    mention_blocks = members_helper.build_mentions_blocks(channel_id=channel_id)
+    blocks = [
+        {
+            "type": "markdown",
+            "text": "# Information\n投稿がないため、このチャンネルはアーカイブされます。",
+        }
+    ] + mention_blocks
+    send_text(client, channel_id, blocks=blocks)
 
 
 def join_channels(

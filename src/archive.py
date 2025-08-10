@@ -5,6 +5,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 from src.channel_analytics import is_not_active_channels
+from src.send_message import send_mention_message
 
 
 def run_conversations_list(
@@ -129,7 +130,7 @@ def archive_channels(
             continue
         if is_not_active_channels(latest_ts, threshold_days, target_dt=target_dt):
             if not dry_run:
-                # todo list members before archive
+                send_mention_message(client, channel_info["id"])
                 try:
                     client.conversations_archive(channel=channel_info["id"])
                 except SlackApiError as e:
