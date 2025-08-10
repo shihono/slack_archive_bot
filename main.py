@@ -74,9 +74,14 @@ def list_channel(threshold_days, send_message, save_path, dry_run):
     default=100,
     help="Days of condition to archive inactive channels",
 )
+@click.option(
+    "--list-members",
+    is_flag=True,
+    help="If True, Get a list of channel members and mention them before archive",
+)
 @click.option("--dry-run", is_flag=True)
 @cli.command("archive")
-def archive_channel(threshold_days, dry_run):
+def archive_channel(threshold_days, dry_run, list_members):
     """archive channels that bot joined
 
     * If the channels is active, leave the channel without archive

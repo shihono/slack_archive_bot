@@ -102,6 +102,7 @@ def archive_channels(
     threshold_days: int,
     target_dt: datetime = None,
     dry_run: bool = True,
+    list_message: bool = False,
 ):
     """archive channels that bot joined
     If the channel become active, bot leave from it.
@@ -110,6 +111,7 @@ def archive_channels(
         client: slack_sdk WebClient
         threshold_days: Days of condition to archive inactive channels
         dry_run: if True, only check if each channel that bot joined is inactive
+        list_message: list channel members and mention them before archive
 
     Return:
         channel info list
@@ -130,7 +132,8 @@ def archive_channels(
             continue
         if is_not_active_channels(latest_ts, threshold_days, target_dt=target_dt):
             if not dry_run:
-                send_mention_message(client, channel_info["id"])
+                if list_message:
+                    send_mention_message(client, channel_info["id"])
                 try:
                     client.conversations_archive(channel=channel_info["id"])
                 except SlackApiError as e:
