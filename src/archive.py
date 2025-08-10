@@ -67,19 +67,27 @@ def list_bot_joined_channels(
     return channels
 
 
-def get_latest_message_ts(client: WebClient, channel_id: str) -> Optional[int]:
+def get_latest_message_ts(
+    client: WebClient, channel_id: str, bot_user_id=None
+) -> Optional[int]:
     """get timestamp
-
-    # todo filter bot message
+    if bot_user_id is set, skip this bot message
 
     Return:
         timestamp
     """
     try:
-        response = client.conversations_history(channel=channel_id, limit=1)
+        response = client.conversations_history(channel=channel_id, limit=10)
         messages = response.get("messages", [])
-        if messages:
-            return int(float(messages[0]["ts"]))
+        for message in messages:
+            if (
+                bot_user_id
+                and message.get("bot_id")
+                and message["bot_id"] == bot_user_id
+            ):
+                continue
+            else:
+                return int(float(message["ts"]))
         else:
             print(f"Message not found: {channel_id}")
             return None
@@ -108,9 +116,16 @@ def archive_channels(
     archived_channels = []
     if target_dt is None:
         target_dt = datetime.now()
+    # get bot info
+    auth_info = client.auth_test()
+    bot_user_id = auth_info.get("user_id", None)
+
     for channel_info in list_bot_joined_channels(client):
-        latest_ts = get_latest_message_ts(client, channel_info["id"])
+        latest_ts = get_latest_message_ts(
+            client, channel_info["id"], bot_user_id=bot_user_id
+        )
         if latest_ts is None:
+            # todo archive if there are no messages in the channel
             continue
         if is_not_active_channels(latest_ts, threshold_days, target_dt=target_dt):
             if not dry_run:

@@ -21,7 +21,7 @@ class SlackChannelMembers:
                 cursor = response.get("response_metadata", {}).get("next_cursor")
                 if not cursor:
                     break
-            return members_list
+            return sorted(members_list)
         except SlackApiError as e:
             print(f"Error fetching members: {e.response['error']}")
             return []
