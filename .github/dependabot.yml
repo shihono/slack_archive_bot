@@ -1,0 +1,12 @@
+version: 2
+
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      prod-dependency:
+        dependency-type: production
+      dev-dependency:
+        dependency-type: development
