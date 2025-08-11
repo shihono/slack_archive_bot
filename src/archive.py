@@ -5,6 +5,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 from src.channel_analytics import is_not_active_channels
+from src.send_message import send_mention_message
 
 
 def run_conversations_list(
@@ -67,19 +68,27 @@ def list_bot_joined_channels(
     return channels
 
 
-def get_latest_message_ts(client: WebClient, channel_id: str) -> Optional[int]:
+def get_latest_message_ts(
+    client: WebClient, channel_id: str, bot_user_id=None
+) -> Optional[int]:
     """get timestamp
-
-    # todo filter bot message
+    if bot_user_id is set, skip this bot message
 
     Return:
         timestamp
     """
     try:
-        response = client.conversations_history(channel=channel_id, limit=1)
+        response = client.conversations_history(channel=channel_id, limit=10)
         messages = response.get("messages", [])
-        if messages:
-            return int(float(messages[0]["ts"]))
+        for message in messages:
+            if (
+                bot_user_id
+                and message.get("bot_id")
+                and message["bot_id"] == bot_user_id
+            ):
+                continue
+            else:
+                return int(float(message["ts"]))
         else:
             print(f"Message not found: {channel_id}")
             return None
@@ -93,6 +102,7 @@ def archive_channels(
     threshold_days: int,
     target_dt: datetime = None,
     dry_run: bool = True,
+    list_message: bool = False,
 ):
     """archive channels that bot joined
     If the channel become active, bot leave from it.
@@ -101,6 +111,7 @@ def archive_channels(
         client: slack_sdk WebClient
         threshold_days: Days of condition to archive inactive channels
         dry_run: if True, only check if each channel that bot joined is inactive
+        list_message: list channel members and mention them before archive
 
     Return:
         channel info list
@@ -108,13 +119,21 @@ def archive_channels(
     archived_channels = []
     if target_dt is None:
         target_dt = datetime.now()
+    # get bot info
+    auth_info = client.auth_test()
+    bot_user_id = auth_info.get("user_id", None)
+
     for channel_info in list_bot_joined_channels(client):
-        latest_ts = get_latest_message_ts(client, channel_info["id"])
+        latest_ts = get_latest_message_ts(
+            client, channel_info["id"], bot_user_id=bot_user_id
+        )
         if latest_ts is None:
+            # todo archive if there are no messages in the channel
             continue
         if is_not_active_channels(latest_ts, threshold_days, target_dt=target_dt):
             if not dry_run:
-                # todo list members before archive
+                if list_message:
+                    send_mention_message(client, channel_info["id"])
                 try:
                     client.conversations_archive(channel=channel_info["id"])
                 except SlackApiError as e:
